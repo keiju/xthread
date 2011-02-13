@@ -141,7 +141,7 @@ void
 Init_Cond(void)
 {
   rb_cConditionVariable =
-    rb_define_class_under(rb_mXThread, "XConditionVariable", rb_cObject);
+    rb_define_class_under(rb_mXThread, "ConditionVariable", rb_cObject);
   rb_define_alloc_func(rb_cConditionVariable, cond_alloc);
   rb_define_method(rb_cConditionVariable, "initialize", cond_initialize, 0);
   rb_define_method(rb_cConditionVariable, "wait", cond_wait, -1);

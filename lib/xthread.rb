@@ -57,7 +57,7 @@ module XThread
       @que.taint		# enable tainted comunication
       self.taint
       @mutex = Mutex.new
-      @cond = ConditionVariable0.new
+      @cond = XThread::ConditionVariable.new
     end
 
     #

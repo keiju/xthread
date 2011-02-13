@@ -1,0 +1,17 @@
+2011-02-14  Keiju Ishitsuka  <keiju@ishitsuka.com>
+	
+	    * cond.c: XConditionVariable -> ConditionVariable
+
+Local variables:
+add-log-time-format: (lambda ()
+  (let* ((time (current-time))
+	 (system-time-locale "C")
+	 (diff (+ (cadr time) 32400))
+	 (lo (% diff 65536))
+	 (hi (+ (car time) (/ diff 65536))))
+  (format-time-string "%a %b %e %H:%M:%S %Y" (list hi lo) t)))
+indent-tabs-mode: t
+tab-width: 8
+end:
+
+
