@@ -1,6 +1,11 @@
+2011-02-15  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* fifo.c: 新規作成
+	* queue.c: Fifoを使うように変更.
+
 2011-02-14  Keiju Ishitsuka  <keiju@ishitsuka.com>
 	
-	    * cond.c: XConditionVariable -> ConditionVariable
+	* cond.c: XConditionVariable -> ConditionVariable
 
 Local variables:
 add-log-time-format: (lambda ()

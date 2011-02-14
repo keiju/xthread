@@ -150,9 +150,9 @@ when "6"
 when "6.1"
   require "objspace"
 
-#  q = []
+  q = []
 #  q = XThread::Queue0.new
-  q = Queue.new
+#  q = Queue.new
   15.times do
     q.push 0
   end

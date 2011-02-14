@@ -6,13 +6,21 @@
 
 #include "ruby.h"
 
-#define QUEUE_DEFAULT_CAPA 16
+#define SIZED_QUEUE_DEFAULT_MAX 16
+
+extern VALUE rb_fifo_new(void);
+extern VALUE rb_fifo_empty_p(VALUE);
+extern VALUE rb_fifo_push(VALUE, VALUE);
+extern VALUE rb_fifo_pop(VALUE);
+extern VALUE rb_fifo_clear(VALUE);
+extern VALUE rb_fifo_length(VALUE);
 
 extern VALUE rb_cond_new(void);
 extern VALUE rb_cond_signal(VALUE);
 extern VALUE rb_cond_wait(VALUE, VALUE, VALUE);
 
 VALUE rb_mXThread;
+VALUE rb_cFifo;
 VALUE rb_cQueue;
 
 typedef struct rb_queue_struct
@@ -20,11 +28,7 @@ typedef struct rb_queue_struct
   VALUE lock;
   VALUE cond;
 
-  long push;
-  long pop;
-  long capa;
-  
-  VALUE *elements;
+  VALUE elements;
 } queue_t;
 
 #define GetQueuePtr(obj, tobj) \
@@ -37,40 +41,19 @@ queue_mark(void *ptr)
   
   rb_gc_mark(que->lock);
   rb_gc_mark(que->cond);
-
-  if (que->push < que->capa) {
-    long i;
-    for (i = que->pop; i < que->push; i++) {
-      rb_gc_mark(que->elements[i]);
-    }
-  }
-  else {
-    long i;
-    for (i = 0; i < que->push - que->capa; i++) {
-      rb_gc_mark(que->elements[i]);
-    }
-
-    for (i = que->pop; i < que->capa; i++) {
-      rb_gc_mark(que->elements[i]);
-    }
-  }
+  rb_gc_mark(que->elements);
 }
 
 static void
 queue_free(void *ptr)
 {
-  queue_t *que = (queue_t*)ptr;
-  
-  ruby_xfree(que->elements);
   ruby_xfree(ptr);
 }
 
 static size_t
 queue_memsize(const void *ptr)
 {
-  queue_t *que = (queue_t*)ptr;
-  
-  return ptr ? sizeof(queue_t) + (que->push - que->pop) * sizeof(VALUE): 0;
+  return ptr ? sizeof(queue_t) : 0;
 }
 
 static const rb_data_type_t queue_data_type = {
@@ -83,12 +66,7 @@ queue_alloc_init(queue_t *que)
 {
   que->lock = rb_mutex_new();
   que->cond = rb_cond_new();
-
-  que->push = 0;
-  que->pop = 0;
-
-  que->capa = QUEUE_DEFAULT_CAPA;
-  que->elements = ALLOC_N(VALUE, que->capa);
+  que->elements = rb_fifo_new();
 }
 
 static VALUE
@@ -100,28 +78,6 @@ queue_alloc(VALUE klass)
   obj = TypedData_Make_Struct(klass, queue_t, &queue_data_type, que);
   queue_alloc_init(que);
   return obj;
-}
-
-static void
-queue_resize_double_capa(queue_t *que)
-{
-  long new_capa = que->capa * 2;
-
-  REALLOC_N(que->elements, VALUE, new_capa);
-
-  if (que->push > que->capa) {
-    if (que->capa - que->pop <= que->push - que->capa) {
-      MEMCPY(&que->elements[que->pop + que->capa],
-	     &que->elements[que->pop], VALUE, que->capa - que->pop);
-      que->pop += que->capa;
-      que->push += que->capa;
-    }
-    else {
-      MEMCPY(&que->elements[que->capa],
-	     que->elements, VALUE, que->push - que->capa);
-    }
-  }
-  que->capa = new_capa;
 }
 
 static VALUE
@@ -144,29 +100,14 @@ rb_queue_push(VALUE self, VALUE item)
   
   GetQueuePtr(self, que);
 
-  if (que->push == que->pop) {
+  if (rb_fifo_empty_p(que->elements) == Qtrue) {
     signal_p = 1;
   }
-
-  if (que->push < que->capa) {
-    que->elements[que->push++] = item;
-    if (signal_p) {
-      rb_cond_signal(que->cond);
-    }
-    return self;
+  rb_fifo_push(que->elements, item);
+  if (signal_p) {
+    rb_cond_signal(que->cond);
   }
-
-  if (que->push - que->capa < que->pop) {
-    que->elements[que->push - que->capa] = item;
-    que->push++;
-    if (signal_p) {
-      rb_cond_signal(que->cond);
-    }
-    return self;
-  }
-
-  queue_resize_double_capa(que);
-  return rb_queue_push(self, item);
+  return self;
 }
 
 VALUE
@@ -177,19 +118,14 @@ rb_queue_pop(VALUE self)
   
   GetQueuePtr(self, que);
 
-  if (que->pop == que->push) {
+  if (rb_fifo_empty_p(que->elements) == Qtrue) {
     rb_mutex_lock(que->lock);
-    while (que->pop == que->push) {
-  rb_cond_wait(que->cond, que->lock, Qnil);
+    while (rb_fifo_empty_p(que->elements) == Qtrue) {
+      rb_cond_wait(que->cond, que->lock, Qnil);
     }
     rb_mutex_unlock(que->lock);
   }
-  item = que->elements[que->pop++];
-  if(que->pop >= que->capa) {
-    que->pop -= que->capa;
-    que->push -= que->capa;
-  }
-  return item;
+  return rb_fifo_pop(que->elements);
 }
 
 VALUE
@@ -197,10 +133,8 @@ rb_queue_empty_p(VALUE self)
 {
   queue_t *que;
   GetQueuePtr(self, que);
-  
-  if (que->push == que->pop)
-    return Qtrue;
-  return Qfalse;
+
+  return rb_fifo_empty_p(que->elements);
 }
 
 VALUE
@@ -209,8 +143,7 @@ rb_queue_clear(VALUE self)
   queue_t *que;
   GetQueuePtr(self, que);
 
-  que->push = 0;
-  que->pop = 0;
+  rb_fifo_clear(que->elements);
   return self;
 }
 
@@ -220,11 +153,10 @@ rb_queue_length(VALUE self)
   queue_t *que;
   GetQueuePtr(self, que);
 
-  return LONG2NUM(que->push - que->pop);
+  return rb_fifo_length(que->elements);
 }
 
 VALUE rb_cSizedQueue;
-
 
 typedef struct rb_sized_queue_struct
 {
@@ -252,7 +184,6 @@ sized_queue_free(void *ptr)
 {
   sized_queue_t *que = (sized_queue_t*)ptr;
   
-  ruby_xfree(que->super.elements);
   ruby_xfree(ptr);
 }
 
@@ -261,7 +192,7 @@ sized_queue_memsize(const void *ptr)
 {
   sized_queue_t *que = (sized_queue_t*)ptr;
   
-  return ptr ? sizeof(sized_queue_t) + (que->super.push - que->super.pop) * sizeof(VALUE): 0;
+  return ptr ? sizeof(sized_queue_t) : 0;
 }
 
 static const rb_data_type_t sized_queue_data_type = {
@@ -280,7 +211,7 @@ sized_queue_alloc(VALUE klass)
 			      sized_queue_t, &sized_queue_data_type, que);
   queue_alloc_init(&que->super);
 
-  que->max = que->super.capa;
+  que->max = SIZED_QUEUE_DEFAULT_MAX;
   que->cond_wait = rb_cond_new();
 
   return obj;
@@ -344,13 +275,14 @@ VALUE
 rb_sized_queue_push(VALUE self, VALUE item)
 {
   sized_queue_t *que;
+
   GetSizedQueuePtr(self, que);
 
-  if (que->super.push - que->super.pop < que->max) {
+  if (NUM2LONG(rb_fifo_length(que->super.elements)) < que->max) {
     return rb_queue_push(self, item);
   }
   rb_mutex_lock(que->super.lock);
-  while (que->super.push - que->super.pop == que->max) {
+  while (NUM2LONG(rb_fifo_length(que->super.elements)) >= que->max) {
     rb_cond_wait(que->cond_wait, que->super.lock, Qnil);
   }
   rb_mutex_unlock(que->super.lock);
@@ -366,7 +298,7 @@ rb_sized_queue_pop(VALUE self)
 
   item = rb_queue_pop(self);
 
-  if (que->super.push - que->super.pop < que->max) {
+  if (NUM2LONG(rb_fifo_length(que->super.elements)) < que->max) {
     rb_cond_signal(que->cond_wait);
   }
   return item;
