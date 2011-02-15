@@ -6,22 +6,12 @@
 
 #include "ruby.h"
 
+#include "xthread.h"
+
 #define SIZED_QUEUE_DEFAULT_MAX 16
 
-extern VALUE rb_fifo_new(void);
-extern VALUE rb_fifo_empty_p(VALUE);
-extern VALUE rb_fifo_push(VALUE, VALUE);
-extern VALUE rb_fifo_pop(VALUE);
-extern VALUE rb_fifo_clear(VALUE);
-extern VALUE rb_fifo_length(VALUE);
-
-extern VALUE rb_cond_new(void);
-extern VALUE rb_cond_signal(VALUE);
-extern VALUE rb_cond_wait(VALUE, VALUE, VALUE);
-
-VALUE rb_mXThread;
-VALUE rb_cFifo;
 VALUE rb_cQueue;
+VALUE rb_cSizedQueue;
 
 typedef struct rb_queue_struct
 {
@@ -155,8 +145,6 @@ rb_queue_length(VALUE self)
 
   return rb_fifo_length(que->elements);
 }
-
-VALUE rb_cSizedQueue;
 
 typedef struct rb_sized_queue_struct
 {

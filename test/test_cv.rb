@@ -3,9 +3,8 @@
 
 require "xthread"
 
+XConditionVariable = XThread::ConditionVariable
 XQueue = XThread::Queue
-
-
 
 #class TestCV < Test::Unit::TestCase
 class TestCV
@@ -264,7 +263,7 @@ p "X5"
     Thread.abort_on_exception = true
 
     mx = Mutex.new
-    cv = XConditionVariable.new
+    cv = XThread::ConditionVariable.new
 
     i = []
 

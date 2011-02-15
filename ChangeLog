@@ -1,3 +1,11 @@
+Tue Feb 15 19:33:06 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* xthread.h: 新規作成
+	* xthread.c: Init_Fifoを呼ぶようにした.
+	* cond.c: CondtionVariable::waitersにarrayの変わりにfifoを使うよう
+	  にした.
+	* *.c: xthread.hをincludeするようにした.
+
 2011-02-15  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* fifo.c: 新規作成
@@ -18,5 +26,3 @@ add-log-time-format: (lambda ()
 indent-tabs-mode: t
 tab-width: 8
 end:
-
-

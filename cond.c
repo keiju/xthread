@@ -9,19 +9,18 @@
 
 #include "ruby.h"
 
-VALUE rb_mXThread;
+#include "xthread.h"
+
 VALUE rb_cConditionVariable;
 
 typedef struct rb_cond_struct
 {
   VALUE waiters;
-  VALUE waiters_mutex;
+  /* VALUE waiters_mutex; */
 } cond_t;
 
 #define GetCondPtr(obj, tobj) \
     TypedData_Get_Struct((obj), cond_t, &cond_data_type, (tobj))
-
-/*#define cond_mark NULL*/
 
 static void
 cond_mark(void *ptr)
@@ -29,7 +28,7 @@ cond_mark(void *ptr)
   cond_t *cv = (cond_t*)ptr;
   
   rb_gc_mark(cv->waiters);
-      /*    rb_gc_mark(cv->waiters_mutex);*/
+  /* rb_gc_mark(cv->waiters_mutex); */
 }
 
 static void
@@ -56,8 +55,8 @@ cond_alloc(VALUE klass)
   cond_t *cv;
 
   obj = TypedData_Make_Struct(klass, cond_t, &cond_data_type, cv);
-  cv->waiters = rb_ary_new();
-  cv->waiters_mutex = rb_mutex_new();
+  cv->waiters = rb_fifo_new();
+  /* cv->waiters_mutex = rb_mutex_new(); */
   return obj;
 }
 
@@ -87,7 +86,10 @@ rb_cond_wait(VALUE self, VALUE mutex, VALUE timeout)
   
   GetCondPtr(self, cv);
 
-  rb_ary_push(cv->waiters, th);
+  /* rb_mutex_lock(cv->waiters_mutex); */
+  rb_fifo_push(cv->waiters, th);
+  /* rb_mutex_unlock(cv->waiters_mutex); */
+  
   rb_mutex_sleep(mutex, timeout);
   
   return self;
@@ -110,7 +112,9 @@ rb_cond_signal(VALUE self)
   cond_t *cv;
   GetCondPtr(self, cv);
 
-  th = rb_ary_shift(cv->waiters);
+  /*  rb_mutex_lock(cv->waiters_mutex); */
+  th = rb_fifo_pop(cv->waiters);
+  /* rb_mutex_unlock(cv->waiters_mutex); */
   if (th != Qnil) {
     rb_thread_wakeup(th);
   }
@@ -127,10 +131,7 @@ rb_cond_broadcast(VALUE self)
   
   GetCondPtr(self, cv);
 
-  waiters0 = rb_ary_dup(cv->waiters);
-  rb_ary_clear(cv->waiters);
-
-  while ((th = rb_ary_shift(waiters0)) != Qnil) {
+  while ((th = rb_fifo_pop(cv->waiters)) != Qnil) {
     rb_thread_wakeup(th);
   }
   

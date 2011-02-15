@@ -6,6 +6,8 @@
 
 #include "ruby.h"
 
+#include "xthread.h"
+
 #define FIFO_DEFAULT_CAPA 16
 
 VALUE rb_mXThread;
@@ -153,6 +155,9 @@ rb_fifo_pop(VALUE self)
   VALUE item;
   
   GetFifoPtr(self, fifo);
+
+  if (fifo->push == fifo->pop)
+    return Qnil;
 
   item = fifo->elements[fifo->pop++];
   if(fifo->pop >= fifo->capa) {
