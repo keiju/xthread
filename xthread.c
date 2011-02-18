@@ -4,6 +4,7 @@
 extern void Init_Fifo();
 extern void Init_Cond();
 extern void Init_Queue();
+extern void Init_Monitor();
 
 VALUE rb_mXThread;
 
@@ -14,5 +15,6 @@ Init_xthread()
   Init_Fifo();
   Init_Cond();
   Init_Queue();
+  Init_Monitor();
 }
 

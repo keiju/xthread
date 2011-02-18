@@ -11,11 +11,11 @@ ECHO = $(ECHO1:0=@echo)
 #### Start of system configuration section. ####
 
 srcdir = .
-topdir = /usr/local/apps/rubyware/ruby-1.9.3-20110202/include/ruby-1.9.1
-hdrdir = /usr/local/apps/rubyware/ruby-1.9.3-20110202/include/ruby-1.9.1
-arch_hdrdir = /usr/local/apps/rubyware/ruby-1.9.3-20110202/include/ruby-1.9.1/$(arch)
+topdir = /usr/local/apps/rubyware/ruby-1.9.3-20110215/include/ruby-1.9.1
+hdrdir = /usr/local/apps/rubyware/ruby-1.9.3-20110215/include/ruby-1.9.1
+arch_hdrdir = /usr/local/apps/rubyware/ruby-1.9.3-20110215/include/ruby-1.9.1/$(arch)
 VPATH = $(srcdir):$(arch_hdrdir)/ruby:$(hdrdir)/ruby
-prefix = $(DESTDIR)/usr/local/apps/rubyware/ruby-1.9.3-20110202
+prefix = $(DESTDIR)/usr/local/apps/rubyware/ruby-1.9.3-20110215
 rubylibprefix = $(libdir)/$(RUBY_BASE_NAME)
 exec_prefix = $(prefix)
 vendorhdrdir = $(rubyhdrdir)/vendor_ruby
@@ -63,7 +63,7 @@ RUBY_EXTCONF_H =
 cflags   =  $(optflags) $(debugflags) $(warnflags)
 optflags = -O3
 debugflags = -ggdb
-warnflags = -Wextra -Wno-unused-parameter -Wno-parentheses -Wno-long-long -Wno-missing-field-initializers -Wpointer-arith -Wwrite-strings -Wdeclaration-after-statement -Wimplicit-function-declaration
+warnflags = 
 CFLAGS   = -fPIC $(cflags) 
 INCFLAGS = -I. -I$(arch_hdrdir) -I$(hdrdir)/ruby/backward -I$(hdrdir) -I$(srcdir)
 DEFS     = -D_FILE_OFFSET_BITS=64
@@ -84,7 +84,7 @@ RUBY_SO_NAME = ruby
 arch = i686-linux
 sitearch = $(arch)
 ruby_version = 1.9.1
-ruby = /usr/local/apps/rubyware/ruby-1.9.3-20110202/bin/ruby
+ruby = /usr/local/apps/rubyware/ruby-1.9.3-20110215/bin/ruby
 RUBY = $(ruby)
 RM = rm -f
 RM_RF = $(RUBY) -run -e rm -- -rf
@@ -112,8 +112,8 @@ extout_prefix =
 target_prefix = 
 LOCAL_LIBS = 
 LIBS =   -lpthread -lrt -ldl -lcrypt -lm   -lc
-SRCS = xthread.c cond.c fifo.c queue.c
-OBJS = xthread.o cond.o fifo.o queue.o
+SRCS = monitor.c xthread.c cond.c fifo.c queue.c
+OBJS = monitor.o xthread.o cond.o fifo.o queue.o
 TARGET = xthread
 DLLIB = $(TARGET).so
 EXTSTATIC = 
@@ -165,11 +165,17 @@ pre-install-rb-default: $(RUBYLIBDIR)
 install-rb-default: $(RUBYLIBDIR)/xthread.rb $(RUBYLIBDIR)
 $(RUBYLIBDIR)/xthread.rb: $(srcdir)/lib/xthread.rb
 	$(Q) $(INSTALL_DATA) $(srcdir)/lib/xthread.rb $(@D)
+pre-install-rb-default: $(RUBYLIBDIR)/xthread
+install-rb-default: $(RUBYLIBDIR)/xthread/monitor.rb $(RUBYLIBDIR)/xthread
+$(RUBYLIBDIR)/xthread/monitor.rb: $(srcdir)/lib/xthread/monitor.rb
+	$(Q) $(INSTALL_DATA) $(srcdir)/lib/xthread/monitor.rb $(@D)
 pre-install-rb-default:
 	$(ECHO) installing default xthread libraries
 $(RUBYARCHDIR):
 	$(Q) $(MAKEDIRS) $@
 $(RUBYLIBDIR):
+	$(Q) $(MAKEDIRS) $@
+$(RUBYLIBDIR)/xthread:
 	$(Q) $(MAKEDIRS) $@
 
 site-install: site-install-so site-install-rb

@@ -1,6 +1,5 @@
 
 RUBY_EXTERN VALUE rb_mXThread;
-RUBY_EXTERN VALUE rb_mXThread;
 RUBY_EXTERN VALUE rb_cFifo;
 RUBY_EXTERN VALUE rb_cConditionVariable;
 RUBY_EXTERN VALUE rb_cQueue;
@@ -15,7 +14,19 @@ RUBY_EXTERN VALUE rb_fifo_length(VALUE);
 
 RUBY_EXTERN VALUE rb_cond_new(void);
 RUBY_EXTERN VALUE rb_cond_signal(VALUE);
+RUBY_EXTERN VALUE rb_cond_broadcast(VALUE);
 RUBY_EXTERN VALUE rb_cond_wait(VALUE, VALUE, VALUE);
+
+RUBY_EXTERN VALUE rb_monitor_new(void);
+RUBY_EXTERN VALUE rb_monitor_try_enter(VALUE);
+RUBY_EXTERN VALUE rb_monitor_enter(VALUE);
+RUBY_EXTERN VALUE rb_monitor_exit(VALUE);
+RUBY_EXTERN VALUE rb_monitor_synchronize(VALUE, VALUE (*)(VALUE), VALUE);
+RUBY_EXTERN VALUE rb_monitor_new_cond(VALUE);
+
+RUBY_EXTERN VALUE rb_monitor_cond_new(VALUE);
+
+
 
 
 

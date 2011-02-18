@@ -1,3 +1,9 @@
+Fri Feb 18 19:15:28 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* monitor.c: 新規作成
+	* xthread.rb: MonitorMixin新規作成
+	* queue.c: RTESTに変更, Queue/SizedQueeuのnon block pop機能追加
+
 Tue Feb 15 19:33:06 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* xthread.h: 新規作成

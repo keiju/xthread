@@ -90,7 +90,7 @@ rb_queue_push(VALUE self, VALUE item)
   
   GetQueuePtr(self, que);
 
-  if (rb_fifo_empty_p(que->elements) == Qtrue) {
+  if (RTEST(rb_fifo_empty_p(que->elements))) {
     signal_p = 1;
   }
   rb_fifo_push(que->elements, item);
@@ -108,15 +108,46 @@ rb_queue_pop(VALUE self)
   
   GetQueuePtr(self, que);
 
-  if (rb_fifo_empty_p(que->elements) == Qtrue) {
+  if (RTEST(rb_fifo_empty_p(que->elements))) {
     rb_mutex_lock(que->lock);
-    while (rb_fifo_empty_p(que->elements) == Qtrue) {
+    while (RTEST(rb_fifo_empty_p(que->elements))) {
       rb_cond_wait(que->cond, que->lock, Qnil);
     }
     rb_mutex_unlock(que->lock);
   }
   return rb_fifo_pop(que->elements);
 }
+
+VALUE
+rb_queue_pop_non_block(VALUE self)
+{
+  queue_t *que;
+  VALUE item;
+  
+  GetQueuePtr(self, que);
+
+  if (RTEST(rb_fifo_empty_p(que->elements))) {
+    rb_raise(rb_eThreadError, "queue empty");
+  }
+  else {
+    return rb_fifo_pop(que->elements);
+  }
+}
+
+static VALUE
+queue_pop(int argc, VALUE *argv, VALUE self)
+{
+  VALUE non_block;
+  
+  rb_scan_args(argc, argv, "01", &non_block);
+  if (RTEST(non_block)) {
+    return rb_queue_pop_non_block(self);
+  }
+  else {
+    return rb_queue_pop(self);
+  }
+}
+
 
 VALUE
 rb_queue_empty_p(VALUE self)
@@ -292,6 +323,36 @@ rb_sized_queue_pop(VALUE self)
   return item;
 }
 
+VALUE
+rb_sized_queue_pop_non_block(VALUE self)
+{
+  VALUE item;
+  sized_queue_t *que;
+  GetSizedQueuePtr(self, que);
+
+  item = rb_queue_pop_non_block(self);
+
+  if (NUM2LONG(rb_fifo_length(que->super.elements)) < que->max) {
+    rb_cond_signal(que->cond_wait);
+  }
+  return item;
+}
+
+static VALUE
+sized_queue_pop(int argc, VALUE *argv, VALUE self)
+{
+  VALUE item;
+  sized_queue_t *que;
+  GetSizedQueuePtr(self, que);
+
+  item = queue_pop(argc, argv, self);
+
+  if (NUM2LONG(rb_fifo_length(que->super.elements)) < que->max) {
+    rb_cond_signal(que->cond_wait);
+  }
+  return item;
+}
+
 void
 Init_Queue()
 {
@@ -299,7 +360,7 @@ Init_Queue()
 
   rb_define_alloc_func(rb_cQueue, queue_alloc);
   rb_define_method(rb_cQueue, "initialize", queue_initialize, 0);
-  rb_define_method(rb_cQueue, "pop", rb_queue_pop, 0);
+  rb_define_method(rb_cQueue, "pop", queue_pop, 0);
   rb_define_alias(rb_cQueue,  "shift", "pop");
   rb_define_alias(rb_cQueue,  "deq", "pop");
   rb_define_method(rb_cQueue, "push", rb_queue_push, 1);
@@ -315,7 +376,7 @@ Init_Queue()
 
   rb_define_alloc_func(rb_cSizedQueue, sized_queue_alloc);
   rb_define_method(rb_cSizedQueue, "initialize", sized_queue_initialize, 1);
-  rb_define_method(rb_cSizedQueue, "pop", rb_sized_queue_pop, 0);
+  rb_define_method(rb_cSizedQueue, "pop", sized_queue_pop, 0);
   rb_define_alias(rb_cSizedQueue,  "shift", "pop");
   rb_define_alias(rb_cSizedQueue,  "deq", "pop");
   rb_define_method(rb_cSizedQueue, "push", rb_sized_queue_push, 1);

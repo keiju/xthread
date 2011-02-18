@@ -20,6 +20,40 @@ if $DEBUG
 end
 
 module XThread
+  module MonitorMixin
+    def self.extend_object(obj)
+      super(obj)
+      obj.__send__(:mon_initialize)
+    end
+
+    def mon_initialize
+      @_monitor = Monitor.new
+    end
+
+    def mon_try_enter
+      @_monitor.try_enter
+    end
+
+    def mon_enter
+      @_monitor.enter
+    end
+
+    def mon_exit
+      @_monitor.exit
+    end
+
+    def mon_synchronize(&block)
+      @_monitor.synchronize(&block)
+    end
+
+    def new_cond
+      @_monitor.new_cond
+    end
+
+  end
+end
+
+module XThread
 
   #
   # This class provides a way to synchronize communication between threads.
