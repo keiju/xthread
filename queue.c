@@ -77,7 +77,7 @@ queue_initialize(VALUE self)
 }
 
 VALUE
-queue_new(void)
+rb_queue_new(void)
 {
   return queue_alloc(rb_cQueue);
 }

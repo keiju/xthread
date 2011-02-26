@@ -101,6 +101,22 @@ rb_monitor_check_owner(VALUE self)
 */
 
 VALUE
+rb_monitor_valid_owner_p(VALUE self)
+{
+  monitor_t *mon;
+  VALUE th = rb_thread_current();
+
+  GetMonitorPtr(self, mon);
+  
+  if (mon->owner == th) {
+    return Qtrue;
+  }
+  else {
+    return Qfalse;
+  }
+}
+
+VALUE
 rb_monitor_try_enter(VALUE self)
 {
   monitor_t *mon;
@@ -167,7 +183,7 @@ rb_monitor_new_cond(VALUE self)
   rb_monitor_cond_new(self);
 }
 
-static VALUE
+VALUE
 rb_monitor_enter_for_cond(VALUE self, long count)
 {
   monitor_t *mon;
@@ -179,7 +195,7 @@ rb_monitor_enter_for_cond(VALUE self, long count)
   mon->count = count;
 }
 
-static long
+long
 rb_monitor_exit_for_cond(VALUE self)
 {
   monitor_t *mon;
