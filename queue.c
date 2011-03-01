@@ -2,6 +2,9 @@
 
   queue.c -
 
+  Copyright (C) 2011 Keiju Ishitsuka
+  Copyright (C) 2011 Penta Advanced Laboratories, Inc.
+
 **********************************************************************/
 
 #include "ruby.h"
@@ -360,7 +363,7 @@ Init_Queue()
 
   rb_define_alloc_func(rb_cQueue, queue_alloc);
   rb_define_method(rb_cQueue, "initialize", queue_initialize, 0);
-  rb_define_method(rb_cQueue, "pop", queue_pop, 0);
+  rb_define_method(rb_cQueue, "pop", queue_pop, -1);
   rb_define_alias(rb_cQueue,  "shift", "pop");
   rb_define_alias(rb_cQueue,  "deq", "pop");
   rb_define_method(rb_cQueue, "push", rb_queue_push, 1);

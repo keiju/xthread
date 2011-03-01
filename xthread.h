@@ -1,3 +1,14 @@
+/**********************************************************************
+
+  xthread.h -
+
+  Copyright (C) 2011 Keiju Ishitsuka
+  Copyright (C) 2011 Penta Advanced Laboratories, Inc.
+
+**********************************************************************/
+
+
+#define XTHREAD_VERSION "0.1.2"
 
 RUBY_EXTERN VALUE rb_mXThread;
 RUBY_EXTERN VALUE rb_cFifo;

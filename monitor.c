@@ -2,6 +2,9 @@
 
   monitor.c -
 
+  Copyright (C) 2011 Keiju Ishitsuka
+  Copyright (C) 2011 Penta Advanced Laboratories, Inc.
+
 **********************************************************************/
 
 #include "ruby.h"
