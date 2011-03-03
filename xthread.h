@@ -36,7 +36,11 @@ RUBY_EXTERN VALUE rb_monitor_synchronize(VALUE, VALUE (*)(VALUE), VALUE);
 RUBY_EXTERN VALUE rb_monitor_new_cond(VALUE);
 
 RUBY_EXTERN VALUE rb_monitor_cond_new(VALUE);
-
+RUBY_EXTERN VALUE rb_monitor_cond_wait(VALUE, VALUE);
+RUBY_EXTERN VALUE rb_monitor_cond_wait_while(VALUE);
+RUBY_EXTERN VALUE rb_monitor_cond_wait_until(VALUE);
+RUBY_EXTERN VALUE rb_monitor_cond_signal(VALUE);
+RUBY_EXTERN VALUE rb_monitor_cond_broadcast(VALUE self);
 
 
 
