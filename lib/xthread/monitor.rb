@@ -81,14 +81,14 @@ require 'xthread'
 # empty_cond.signal.
 #
 module XThread 
-  module MonitorMixin0
+  module RBMonitorMixin
     #
     # FIXME: This isn't documented in Nutshell.
     #
     # Since MonitorMixin.new_cond returns a ConditionVariable, and the example
     # above calls while_wait and signal, this class should be documented.
     #
-    class ConditionVariable0
+    class RBConditionVariable
       class Timeout < Exception; end
 
       #
@@ -214,7 +214,7 @@ module XThread
     # receiver.
     #
     def new_cond
-      return ConditionVariable0.new(self)
+      return RBConditionVariable.new(self)
     end
 
     private
@@ -249,8 +249,8 @@ module XThread
     end
   end
 
-  class Monitor0
-    include MonitorMixin0
+  class RBMonitor
+    include RBMonitorMixin
     alias try_enter try_mon_enter
     alias enter mon_enter
     alias exit mon_exit

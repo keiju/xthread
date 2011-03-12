@@ -9,10 +9,10 @@
 
 #include "ruby.h"
 
-extern void Init_Fifo();
-extern void Init_Cond();
-extern void Init_Queue();
-extern void Init_Monitor();
+extern void Init_XThreadFifo();
+extern void Init_XThreadCond();
+extern void Init_XThreadQueue();
+extern void Init_XThreadMonitor();
 
 VALUE rb_mXThread;
 
@@ -20,9 +20,9 @@ Init_xthread()
 {
   rb_mXThread = rb_define_module("XThread");
 
-  Init_Fifo();
-  Init_Cond();
-  Init_Queue();
-  Init_Monitor();
+  Init_XThreadFifo();
+  Init_XThreadCond();
+  Init_XThreadQueue();
+  Init_XThreadMonitor();
 }
 

@@ -1,3 +1,9 @@
+Sat Mar 12 21:42:44 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* *.[hc]: 公開APIにプリフィックスxthreadを追加
+	* lib/**.rb: Ruby版の名前を**0からRB**に変更
+	* LICENSE追加
+
 Thu Mar  3 22:18:27 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* xthread.h: 公開関数を増やした.

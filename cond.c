@@ -11,51 +11,52 @@
 
 #include "xthread.h"
 
-VALUE rb_cConditionVariable;
+VALUE rb_cXThreadConditionVariable;
 
-typedef struct rb_cond_struct
+typedef struct rb_xthread_cond_struct
 {
   VALUE waiters;
   /* VALUE waiters_mutex; */
-} cond_t;
+} xthread_cond_t;
 
-#define GetCondPtr(obj, tobj) \
-    TypedData_Get_Struct((obj), cond_t, &cond_data_type, (tobj))
+#define GetXThreadCondPtr(obj, tobj) \
+    TypedData_Get_Struct((obj), xthread_cond_t, &xthread_cond_data_type, (tobj))
 
 static void
-cond_mark(void *ptr)
+xthread_cond_mark(void *ptr)
 {
-  cond_t *cv = (cond_t*)ptr;
+  xthread_cond_t *cv = (xthread_cond_t*)ptr;
   
   rb_gc_mark(cv->waiters);
   /* rb_gc_mark(cv->waiters_mutex); */
 }
 
 static void
-cond_free(void *ptr)
+xthread_cond_free(void *ptr)
 {
     ruby_xfree(ptr);
 }
 
 static size_t
-cond_memsize(const void *ptr)
+xthread_cond_memsize(const void *ptr)
 {
-    return ptr ? sizeof(cond_t) : 0;
+    return ptr ? sizeof(xthread_cond_t) : 0;
 }
 
-static const rb_data_type_t cond_data_type = {
-    "cond",
-    {cond_mark, cond_free, cond_memsize,},
+static const rb_data_type_t xthread_cond_data_type = {
+    "xthread_cond",
+    {xthread_cond_mark, xthread_cond_free, xthread_cond_memsize,},
 };
 
 static VALUE
-cond_alloc(VALUE klass)
+xthread_cond_alloc(VALUE klass)
 {
   VALUE volatile obj;
-  cond_t *cv;
+  xthread_cond_t *cv;
 
-  obj = TypedData_Make_Struct(klass, cond_t, &cond_data_type, cv);
-  cv->waiters = rb_fifo_new();
+  obj = TypedData_Make_Struct(klass, xthread_cond_t,
+			      &xthread_cond_data_type, cv);
+  cv->waiters = rb_xthread_fifo_new();
   /* cv->waiters_mutex = rb_mutex_new(); */
   return obj;
 }
@@ -67,27 +68,27 @@ cond_alloc(VALUE klass)
  *  Creates a new ConditionVariable
  */
 static VALUE
-cond_initialize(VALUE self)
+xthread_cond_initialize(VALUE self)
 {
     return self;
 }
 
 VALUE
-rb_cond_new(void)
+rb_xthread_cond_new(void)
 {
-  return cond_alloc(rb_cConditionVariable);
+  return xthread_cond_alloc(rb_cXThreadConditionVariable);
 }
 
 VALUE
-rb_cond_wait(VALUE self, VALUE mutex, VALUE timeout)
+rb_xthread_cond_wait(VALUE self, VALUE mutex, VALUE timeout)
 {
-  cond_t *cv;
+  xthread_cond_t *cv;
   VALUE th = rb_thread_current();
   
-  GetCondPtr(self, cv);
+  GetXThreadCondPtr(self, cv);
 
   /* rb_mutex_lock(cv->waiters_mutex); */
-  rb_fifo_push(cv->waiters, th);
+  rb_xthread_fifo_push(cv->waiters, th);
   /* rb_mutex_unlock(cv->waiters_mutex); */
   
   rb_mutex_sleep(mutex, timeout);
@@ -96,24 +97,24 @@ rb_cond_wait(VALUE self, VALUE mutex, VALUE timeout)
 }
 
 static VALUE
-cond_wait(int argc, VALUE *argv, VALUE self)
+xthread_cond_wait(int argc, VALUE *argv, VALUE self)
 {
   VALUE mutex;
   VALUE timeout;
   
   rb_scan_args(argc, argv, "11", &mutex, &timeout);
-  return rb_cond_wait(self, mutex, timeout);
+  return rb_xthread_cond_wait(self, mutex, timeout);
 }
 
 VALUE
-rb_cond_signal(VALUE self)
+rb_xthread_cond_signal(VALUE self)
 {
   VALUE th;
-  cond_t *cv;
-  GetCondPtr(self, cv);
+  xthread_cond_t *cv;
+  GetXThreadCondPtr(self, cv);
 
   /*  rb_mutex_lock(cv->waiters_mutex); */
-  th = rb_fifo_pop(cv->waiters);
+  th = rb_xthread_fifo_pop(cv->waiters);
   /* rb_mutex_unlock(cv->waiters_mutex); */
   if (th != Qnil) {
     rb_thread_wakeup(th);
@@ -123,15 +124,15 @@ rb_cond_signal(VALUE self)
 }
 
 VALUE
-rb_cond_broadcast(VALUE self)
+rb_xthread_cond_broadcast(VALUE self)
 {
-  cond_t *cv;
+  xthread_cond_t *cv;
   VALUE waiters0;
   VALUE th;
   
-  GetCondPtr(self, cv);
+  GetXThreadCondPtr(self, cv);
 
-  while ((th = rb_fifo_pop(cv->waiters)) != Qnil) {
+  while ((th = rb_xthread_fifo_pop(cv->waiters)) != Qnil) {
     rb_thread_wakeup(th);
   }
   
@@ -139,13 +140,13 @@ rb_cond_broadcast(VALUE self)
 }
 
 void
-Init_Cond(void)
+Init_XThreadCond(void)
 {
-  rb_cConditionVariable =
+  rb_cXThreadConditionVariable =
     rb_define_class_under(rb_mXThread, "ConditionVariable", rb_cObject);
-  rb_define_alloc_func(rb_cConditionVariable, cond_alloc);
-  rb_define_method(rb_cConditionVariable, "initialize", cond_initialize, 0);
-  rb_define_method(rb_cConditionVariable, "wait", cond_wait, -1);
-  rb_define_method(rb_cConditionVariable, "signal", rb_cond_signal, 0);
-  rb_define_method(rb_cConditionVariable, "broadcast", rb_cond_broadcast, 0);
+  rb_define_alloc_func(rb_cXThreadConditionVariable, xthread_cond_alloc);
+  rb_define_method(rb_cXThreadConditionVariable, "initialize", xthread_cond_initialize, 0);
+  rb_define_method(rb_cXThreadConditionVariable, "wait", xthread_cond_wait, -1);
+  rb_define_method(rb_cXThreadConditionVariable, "signal", rb_xthread_cond_signal, 0);
+  rb_define_method(rb_cXThreadConditionVariable, "broadcast", rb_xthread_cond_broadcast, 0);
 }

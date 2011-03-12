@@ -1,6 +1,7 @@
 #
-#		threadx.rb - C implementation for thread support classes
-#			by Keiju Ishitsuka(keiju@ruby-lang.org)
+#   xthread.rb - 
+#		 Copyright (C) 2011 Keiju Ishitsuka
+#                Copyright (C) 2011 Penta Advanced Laboratories, Inc.
 #
 #
 
@@ -54,38 +55,7 @@ module XThread
 end
 
 module XThread
-
-  #
-  # This class provides a way to synchronize communication between threads.
-  #
-  # Example:
-  #
-  #   require 'thread'
-  #
-  #   queue = Queue.new
-  #
-  #   producer = Thread.new do
-  #     5.times do |i|
-  #       sleep rand(i) # simulate expense
-  #       queue << i
-  #       puts "#{i} produced"
-  #     end
-  #   end
-  #
-  #   consumer = Thread.new do
-  #     5.times do |i|
-  #       value = queue.pop
-  #       sleep rand(i/2) # simulate expense
-  #       puts "consumed #{value}"
-  #     end
-  #   end
-  #
-  #   consumer.join
-  #
-  class Queue0
-    #
-    # Creates a new queue.
-    #
+  class RBQueue
     def initialize
       @que = []
       @que.taint		# enable tainted comunication
@@ -181,7 +151,7 @@ module XThread
   #
   # See Queue for an example of how a SizedQueue works.
   #
-  class SizedQueue0 < Queue0
+  class RBSizedQueue < RBQueue
     #
     # Creates a fixed-length queue with a maximum size of +max+.
     #

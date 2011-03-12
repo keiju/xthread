@@ -14,24 +14,24 @@
 #define FIFO_DEFAULT_CAPA 16
 
 VALUE rb_mXThread;
-VALUE rb_cFifo;
+VALUE rb_cXThreadFifo;
 
-typedef struct rb_fifo_struct
+typedef struct rb_xthread_fifo_struct
 {
   long push;
   long pop;
   long capa;
   
   VALUE *elements;
-} fifo_t;
+} xthread_fifo_t;
 
-#define GetFifoPtr(obj, tobj) \
-    TypedData_Get_Struct((obj), fifo_t, &fifo_data_type, (tobj))
+#define GetXThreadFifoPtr(obj, tobj) \
+    TypedData_Get_Struct((obj), xthread_fifo_t, &xthread_fifo_data_type, (tobj))
 
 static void
-fifo_mark(void *ptr)
+xthread_fifo_mark(void *ptr)
 {
-  fifo_t *fifo = (fifo_t*)ptr;
+  xthread_fifo_t *fifo = (xthread_fifo_t*)ptr;
   
   if (fifo->push < fifo->capa) {
     long i;
@@ -52,34 +52,34 @@ fifo_mark(void *ptr)
 }
 
 static void
-fifo_free(void *ptr)
+xthread_fifo_free(void *ptr)
 {
-  fifo_t *fifo = (fifo_t*)ptr;
+  xthread_fifo_t *fifo = (xthread_fifo_t*)ptr;
   
   ruby_xfree(fifo->elements);
   ruby_xfree(ptr);
 }
 
 static size_t
-fifo_memsize(const void *ptr)
+xthread_fifo_memsize(const void *ptr)
 {
-  fifo_t *fifo = (fifo_t*)ptr;
+  xthread_fifo_t *fifo = (xthread_fifo_t*)ptr;
   
-  return ptr ? sizeof(fifo_t) + (fifo->push - fifo->pop) * sizeof(VALUE): 0;
+  return ptr ? sizeof(xthread_fifo_t) + (fifo->push - fifo->pop) * sizeof(VALUE): 0;
 }
 
-static const rb_data_type_t fifo_data_type = {
-    "fifo",
-    {fifo_mark, fifo_free, fifo_memsize,},
+static const rb_data_type_t xthread_fifo_data_type = {
+    "xthread_fifo",
+    {xthread_fifo_mark, xthread_fifo_free, xthread_fifo_memsize,},
 };
 
 static VALUE
-fifo_alloc(VALUE klass)
+xthread_fifo_alloc(VALUE klass)
 {
   VALUE volatile obj;
-  fifo_t *fifo;
+  xthread_fifo_t *fifo;
 
-  obj = TypedData_Make_Struct(klass, fifo_t, &fifo_data_type, fifo);
+  obj = TypedData_Make_Struct(klass, xthread_fifo_t, &xthread_fifo_data_type, fifo);
   
   fifo->push = 0;
   fifo->pop = 0;
@@ -91,7 +91,7 @@ fifo_alloc(VALUE klass)
 }
 
 static void
-fifo_resize_double_capa(fifo_t *fifo)
+xthread_fifo_resize_double_capa(xthread_fifo_t *fifo)
 {
   long new_capa = fifo->capa * 2;
 
@@ -113,24 +113,24 @@ fifo_resize_double_capa(fifo_t *fifo)
 }
 
 static VALUE
-fifo_initialize(VALUE self)
+xthread_fifo_initialize(VALUE self)
 {
     return self;
 }
 
 VALUE
-rb_fifo_new(void)
+rb_xthread_fifo_new(void)
 {
-  return fifo_alloc(rb_cFifo);
+  return xthread_fifo_alloc(rb_cXThreadFifo);
 }
 
 VALUE
-rb_fifo_push(VALUE self, VALUE item)
+rb_xthread_fifo_push(VALUE self, VALUE item)
 {
-  fifo_t *fifo;
+  xthread_fifo_t *fifo;
   int signal_p = 0;
   
-  GetFifoPtr(self, fifo);
+  GetXThreadFifoPtr(self, fifo);
 
   if (fifo->push == fifo->pop) {
     signal_p = 1;
@@ -147,17 +147,17 @@ rb_fifo_push(VALUE self, VALUE item)
     return self;
   }
 
-  fifo_resize_double_capa(fifo);
-  return rb_fifo_push(self, item);
+  xthread_fifo_resize_double_capa(fifo);
+  return rb_xthread_fifo_push(self, item);
 }
 
 VALUE
-rb_fifo_pop(VALUE self)
+rb_xthread_fifo_pop(VALUE self)
 {
-  fifo_t *fifo;
+  xthread_fifo_t *fifo;
   VALUE item;
   
-  GetFifoPtr(self, fifo);
+  GetXThreadFifoPtr(self, fifo);
 
   if (fifo->push == fifo->pop)
     return Qnil;
@@ -171,10 +171,10 @@ rb_fifo_pop(VALUE self)
 }
 
 VALUE
-rb_fifo_empty_p(VALUE self)
+rb_xthread_fifo_empty_p(VALUE self)
 {
-  fifo_t *fifo;
-  GetFifoPtr(self, fifo);
+  xthread_fifo_t *fifo;
+  GetXThreadFifoPtr(self, fifo);
   
   if (fifo->push == fifo->pop)
     return Qtrue;
@@ -182,10 +182,10 @@ rb_fifo_empty_p(VALUE self)
 }
 
 VALUE
-rb_fifo_clear(VALUE self)
+rb_xthread_fifo_clear(VALUE self)
 {
-  fifo_t *fifo;
-  GetFifoPtr(self, fifo);
+  xthread_fifo_t *fifo;
+  GetXThreadFifoPtr(self, fifo);
 
   fifo->push = 0;
   fifo->pop = 0;
@@ -193,32 +193,74 @@ rb_fifo_clear(VALUE self)
 }
 
 VALUE
-rb_fifo_length(VALUE self)
+rb_xthread_fifo_length(VALUE self)
 {
-  fifo_t *fifo;
-  GetFifoPtr(self, fifo);
+  xthread_fifo_t *fifo;
+  GetXThreadFifoPtr(self, fifo);
 
   return LONG2NUM(fifo->push - fifo->pop);
 }
 
-void
-Init_Fifo()
+VALUE
+rb_xthread_fifo_to_a(VALUE self)
 {
-  rb_cFifo  = rb_define_class_under(rb_mXThread, "Fifo", rb_cObject);
+  VALUE ary;
+  xthread_fifo_t *fifo;
+  GetXThreadFifoPtr(self, fifo);
 
-  rb_define_alloc_func(rb_cFifo, fifo_alloc);
-  rb_define_method(rb_cFifo, "initialize", fifo_initialize, 0);
-  rb_define_method(rb_cFifo, "pop", rb_fifo_pop, 0);
-  rb_define_alias(rb_cFifo,  "shift", "pop");
-  rb_define_alias(rb_cFifo,  "deq", "pop");
-  rb_define_method(rb_cFifo, "push", rb_fifo_push, 1);
-  rb_define_alias(rb_cFifo,  "<<", "push");
-  rb_define_alias(rb_cFifo,  "enq", "push");
-  rb_define_method(rb_cFifo, "empty?", rb_fifo_empty_p, 0);
-  rb_define_method(rb_cFifo, "clear", rb_fifo_clear, 0);
-  rb_define_method(rb_cFifo, "length", rb_fifo_length, 0);
-  rb_define_alias(rb_cFifo,  "size", "length");
-  
+  ary = rb_ary_new2(fifo->push - fifo->pop);
+
+  if (fifo->push < fifo->capa) {
+    long i;
+    for (i = fifo->pop; i < fifo->push; i++) {
+      rb_ary_push(ary, fifo->elements[i]);
+    }
+  }
+  else {
+    long i;
+    for (i = 0; i < fifo->push - fifo->capa; i++) {
+      rb_ary_push(ary, fifo->elements[i]);
+    }
+
+    for (i = fifo->pop; i < fifo->capa; i++) {
+      rb_ary_push(ary, fifo->elements[i]);
+    }
+  }
+  return ary;
 }
 
+VALUE
+rb_xthread_fifo_inspect(VALUE self)
+{
+  xthread_fifo_t *fifo;
+  VALUE str;
+  
+  GetXThreadFifoPtr(self, fifo);
 
+  str = rb_sprintf("<%s ", rb_obj_classname(self), (void*)self);
+  rb_str_append(str, rb_inspect(rb_xthread_fifo_to_a(self)));
+  rb_str_cat2(str, ">");
+  return str;
+}
+
+void
+Init_XThreadFifo()
+{
+  rb_cXThreadFifo  = rb_define_class_under(rb_mXThread, "Fifo", rb_cObject);
+
+  rb_define_alloc_func(rb_cXThreadFifo, xthread_fifo_alloc);
+  rb_define_method(rb_cXThreadFifo, "initialize", xthread_fifo_initialize, 0);
+  rb_define_method(rb_cXThreadFifo, "pop", rb_xthread_fifo_pop, 0);
+  rb_define_alias(rb_cXThreadFifo,  "shift", "pop");
+  rb_define_alias(rb_cXThreadFifo,  "deq", "pop");
+  rb_define_method(rb_cXThreadFifo, "push", rb_xthread_fifo_push, 1);
+  rb_define_alias(rb_cXThreadFifo,  "<<", "push");
+  rb_define_alias(rb_cXThreadFifo,  "enq", "push");
+  rb_define_method(rb_cXThreadFifo, "empty?", rb_xthread_fifo_empty_p, 0);
+  rb_define_method(rb_cXThreadFifo, "clear", rb_xthread_fifo_clear, 0);
+  rb_define_method(rb_cXThreadFifo, "length", rb_xthread_fifo_length, 0);
+  rb_define_alias(rb_cXThreadFifo,  "size", "length");
+  rb_define_method(rb_cXThreadFifo, "to_a", rb_xthread_fifo_to_a, 0);
+  rb_define_method(rb_cXThreadFifo, "inspect", rb_xthread_fifo_inspect, 0);
+  
+}
