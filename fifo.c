@@ -65,7 +65,7 @@ xthread_fifo_memsize(const void *ptr)
 {
   xthread_fifo_t *fifo = (xthread_fifo_t*)ptr;
   
-  return ptr ? sizeof(xthread_fifo_t) + (fifo->push - fifo->pop) * sizeof(VALUE): 0;
+  return ptr ? sizeof(xthread_fifo_t) + fifo->capa * sizeof(VALUE): 0;
 }
 
 static const rb_data_type_t xthread_fifo_data_type = {

@@ -1,3 +1,7 @@
+Tue Mar 22 20:01:23 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* fifo.c: xthread_fifo_memsizeの計算が間違っていた.
+
 Sat Mar 12 21:42:44 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* *.[hc]: 公開APIにプリフィックスxthreadを追加
