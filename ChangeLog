@@ -1,3 +1,7 @@
+Mon Mar 28 20:39:33 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* xthread_fifo_initialize: こちらでelementsをallocationするようにした.
+
 Fri Mar 25 20:07:30 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* xthread.h: 公開APIの宣言を追加した.

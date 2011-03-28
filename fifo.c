@@ -85,7 +85,7 @@ xthread_fifo_alloc(VALUE klass)
   fifo->pop = 0;
 
   fifo->capa = FIFO_DEFAULT_CAPA;
-  fifo->elements = ALLOC_N(VALUE, fifo->capa);
+  fifo->elements = NULL;
 
   return obj;
 }
@@ -115,13 +115,20 @@ xthread_fifo_resize_double_capa(xthread_fifo_t *fifo)
 static VALUE
 xthread_fifo_initialize(VALUE self)
 {
-    return self;
+  xthread_fifo_t *fifo;
+  GetXThreadFifoPtr(self, fifo);
+  
+  fifo->elements = ALLOC_N(VALUE, fifo->capa);
+  return self;
 }
 
 VALUE
 rb_xthread_fifo_new(void)
 {
-  return xthread_fifo_alloc(rb_cXThreadFifo);
+  VALUE self;
+  self = xthread_fifo_alloc(rb_cXThreadFifo);
+  xthread_fifo_initialize(self);
+  return self;
 }
 
 VALUE
@@ -131,10 +138,6 @@ rb_xthread_fifo_push(VALUE self, VALUE item)
   int signal_p = 0;
   
   GetXThreadFifoPtr(self, fifo);
-
-  if (fifo->push == fifo->pop) {
-    signal_p = 1;
-  }
 
   if (fifo->push < fifo->capa) {
     fifo->elements[fifo->push++] = item;
