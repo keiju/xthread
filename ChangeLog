@@ -1,3 +1,7 @@
+Sun Apr 10 21:51:05 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* xthread.gemspec: 追加
+
 Mon Mar 28 20:39:33 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* xthread_fifo_initialize: こちらでelementsをallocationするようにした.
