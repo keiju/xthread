@@ -9,7 +9,13 @@ Gem::Specification.new do |s|
   s.summary = "C-implementation version of thread.rb and monitor.eb libraries"
   s.rubyforge_project = s.name
   s.homepage = "http://github.com/keiju/xthread"
-  s.version = `git tag`.split.collect{|e| e.sub(/v([0-9]+\.[0-9]+\.[0-9]+).*/, "\\1")}.sort.last
+  
+  tag = `git tag`.split.sort.last
+  v, p = tag.scan(/^v([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)/).first
+  if p.to_i > 0
+    v += "."+p
+  end
+  s.version = v
   s.require_path = "."
 #  s.test_file = ""
 #  s.executable = ""
