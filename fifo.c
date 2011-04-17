@@ -55,8 +55,10 @@ static void
 xthread_fifo_free(void *ptr)
 {
   xthread_fifo_t *fifo = (xthread_fifo_t*)ptr;
-  
-  ruby_xfree(fifo->elements);
+
+  if (fifo->elements) {
+    ruby_xfree(fifo->elements);
+  }
   ruby_xfree(ptr);
 }
 
@@ -84,7 +86,7 @@ xthread_fifo_alloc(VALUE klass)
   fifo->push = 0;
   fifo->pop = 0;
 
-  fifo->capa = FIFO_DEFAULT_CAPA;
+  fifo->capa = 0;
   fifo->elements = NULL;
 
   return obj;
@@ -117,7 +119,8 @@ xthread_fifo_initialize(VALUE self)
 {
   xthread_fifo_t *fifo;
   GetXThreadFifoPtr(self, fifo);
-  
+
+  fifo->capa = FIFO_DEFAULT_CAPA;
   fifo->elements = ALLOC_N(VALUE, fifo->capa);
   return self;
 }
