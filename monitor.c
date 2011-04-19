@@ -56,10 +56,19 @@ xthread_monitor_memsize(const void *ptr)
   return ptr ? sizeof(xthread_monitor_t) : 0;
 }
 
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_monitor_data_type = {
     "xthread_monitor",
     {xthread_monitor_mark, xthread_monitor_free, xthread_monitor_memsize,},
 };
+#else
+static const rb_data_type_t xthread_monitor_data_type = {
+    "xthread_monitor",
+    xthread_monitor_mark,
+    xthread_monitor_free,
+    xthread_monitor_memsize,
+};
+#endif
 
 static VALUE
 xthread_monitor_alloc(VALUE klass)
@@ -243,10 +252,19 @@ xthread_monitor_cond_memsize(const void *ptr)
     return ptr ? sizeof(xthread_monitor_cond_t) : 0;
 }
 
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_monitor_cond_data_type = {
     "xthread_monitor_cond",
     {xthread_monitor_cond_mark, xthread_monitor_cond_free, xthread_monitor_cond_memsize,},
 };
+#else
+static const rb_data_type_t xthread_monitor_cond_data_type = {
+    "xthread_monitor_cond",
+    xthread_monitor_cond_mark,
+    xthread_monitor_cond_free,
+    xthread_monitor_cond_memsize,
+};
+#endif
 
 static VALUE
 xthread_monitor_cond_alloc(VALUE klass)

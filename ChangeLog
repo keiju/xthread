@@ -1,3 +1,7 @@
+Tue Apr 19 19:35:33 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* cond.c, fifo.c, monitor.c, queue.c: Ruby1.9.2のrb_data_type_t対応
+
 Tue Apr 19 15:27:31 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* fifo.c: rb_xthread_fifo_popしたときに, 要素をQnilに設定するよう

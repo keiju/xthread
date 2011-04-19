@@ -70,10 +70,19 @@ xthread_fifo_memsize(const void *ptr)
   return ptr ? sizeof(xthread_fifo_t) + fifo->capa * sizeof(VALUE): 0;
 }
 
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_fifo_data_type = {
     "xthread_fifo",
     {xthread_fifo_mark, xthread_fifo_free, xthread_fifo_memsize,},
 };
+#else
+static const rb_data_type_t xthread_fifo_data_type = {
+    "xthread_fifo",
+    xthread_fifo_mark,
+    xthread_fifo_free,
+    xthread_fifo_memsize,
+};
+#endif
 
 static VALUE
 xthread_fifo_alloc(VALUE klass)

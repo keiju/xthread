@@ -49,10 +49,19 @@ xthread_queue_memsize(const void *ptr)
   return ptr ? sizeof(xthread_queue_t) : 0;
 }
 
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_queue_data_type = {
     "xthread_queue",
     {xthread_queue_mark, xthread_queue_free, xthread_queue_memsize,},
 };
+#else
+static const rb_data_type_t xthread_queue_data_type = {
+    "xthread_queue",
+    xthread_queue_mark,
+    xthread_queue_free,
+    xthread_queue_memsize,
+};
+#endif
 
 static void
 xthread_queue_alloc_init(xthread_queue_t *que)
@@ -217,6 +226,8 @@ xthread_sized_queue_memsize(const void *ptr)
   return ptr ? sizeof(xthread_sized_queue_t) : 0;
 }
 
+
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_sized_queue_data_type = {
     "xthread_sized_queue",
     {xthread_sized_queue_mark, xthread_sized_queue_free, xthread_sized_queue_memsize,},
@@ -355,6 +366,7 @@ xthread_sized_queue_pop(int argc, VALUE *argv, VALUE self)
   }
   return item;
 }
+#endif
 
 void
 Init_XThreadQueue()
@@ -374,7 +386,7 @@ Init_XThreadQueue()
   rb_define_method(rb_cXThreadQueue, "length", rb_xthread_queue_length, 0);
   rb_define_alias(rb_cXThreadQueue,  "size", "length");
 
-
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
   rb_cXThreadSizedQueue  = rb_define_class_under(rb_mXThread, "SizedQueue", rb_cXThreadQueue);
 
   rb_define_alloc_func(rb_cXThreadSizedQueue, xthread_sized_queue_alloc);
@@ -388,6 +400,5 @@ Init_XThreadQueue()
 
   rb_define_method(rb_cXThreadSizedQueue, "max", rb_xthread_sized_queue_max, 0);
   rb_define_method(rb_cXThreadSizedQueue, "max=", rb_xthread_sized_queue_set_max, 1);
-
-  
+#endif
 }

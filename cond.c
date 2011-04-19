@@ -43,10 +43,19 @@ xthread_cond_memsize(const void *ptr)
     return ptr ? sizeof(xthread_cond_t) : 0;
 }
 
+#ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xthread_cond_data_type = {
     "xthread_cond",
     {xthread_cond_mark, xthread_cond_free, xthread_cond_memsize,},
 };
+#else
+static const rb_data_type_t xthread_cond_data_type = {
+    "xthread_cond",
+    xthread_cond_mark,
+    xthread_cond_free,
+    xthread_cond_memsize,
+};
+#endif
 
 static VALUE
 xthread_cond_alloc(VALUE klass)
