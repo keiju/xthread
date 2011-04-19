@@ -1,3 +1,7 @@
+Tue Apr 19 19:45:15 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* xthread.gemspec: リリースバージョン対応
+
 Tue Apr 19 19:35:33 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* cond.c, fifo.c, monitor.c, queue.c: Ruby1.9.2のrb_data_type_t対応
