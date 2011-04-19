@@ -168,7 +168,8 @@ rb_xthread_fifo_pop(VALUE self)
   if (fifo->push == fifo->pop)
     return Qnil;
 
-  item = fifo->elements[fifo->pop++];
+  item = fifo->elements[fifo->pop];
+  fifo->elements[fifo->pop++] = Qnil;
   if(fifo->pop >= fifo->capa) {
     fifo->pop -= fifo->capa;
     fifo->push -= fifo->capa;
