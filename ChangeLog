@@ -1,3 +1,8 @@
+Fri Apr 22 15:30:01 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* chain-list.c: XThread::ChainList追加
+	* xthread.[hc]: XThread::ChainList対応
+
 Tue Apr 19 19:45:15 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* xthread.gemspec: リリースバージョン対応

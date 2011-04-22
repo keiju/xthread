@@ -8,7 +8,7 @@
 **********************************************************************/
 
 
-#define XTHREAD_VERSION "0.1.2"
+#define XTHREAD_VERSION "0.1.5"
 
 RUBY_EXTERN VALUE rb_mXThread;
 RUBY_EXTERN VALUE rb_cXThreadFifo;
@@ -25,6 +25,42 @@ RUBY_EXTERN VALUE rb_xthread_fifo_push(VALUE, VALUE);
 RUBY_EXTERN VALUE rb_xthread_fifo_pop(VALUE);
 RUBY_EXTERN VALUE rb_xthread_fifo_clear(VALUE);
 RUBY_EXTERN VALUE rb_xthread_fifo_length(VALUE);
+
+#define rb_cXTCL rb_cXThreadChainList
+#define rb_xtcl(name) rb_xthread_chain_list##name
+#define xtcl(name) xthread_chain_list##name
+
+typedef struct rb_xtcl(_entry_strct)
+{
+  VALUE element;
+  struct rb_xtcl(_entry_strct) *next;
+} xtcl(_entry_t);
+
+typedef struct rb_xtcl(_strct)
+{
+  long length;
+  xtcl(_entry_t) *head;
+  xtcl(_entry_t) *tail;
+} xtcl(_t);
+
+#define GetXThreadChainListPtr(obj, tobj) \
+  TypedData_Get_Struct((obj), xthread_chain_list_t, &xthread_chain_list_data_type, (tobj))
+
+#define GetXTCLPtr(obj, tobj) GetXThreadChainListPtr(obj, tobj)
+
+RUBY_EXTERN VALUE rb_xthread_chain_list_new(void);
+RUBY_EXTERN VALUE rb_xthread_chain_list_new2(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_length(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_first(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_aref(VALUE, long);
+RUBY_EXTERN VALUE rb_xthread_chain_list_aset(VALUE, long, VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_push(VALUE, VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_unshift(VALUE, VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_pop(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_shift(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_each_callback(VALUE, VALUE(*)(VALUE, VALUE), VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_to_a(VALUE);
+RUBY_EXTERN VALUE rb_xthread_chain_list_inspect(VALUE);
 
 RUBY_EXTERN VALUE rb_xthread_cond_new(void);
 RUBY_EXTERN VALUE rb_xthread_cond_signal(VALUE);

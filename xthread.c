@@ -10,6 +10,7 @@
 #include "ruby.h"
 
 extern void Init_XThreadFifo();
+extern void Init_XThreadChainList();
 extern void Init_XThreadCond();
 extern void Init_XThreadQueue();
 extern void Init_XThreadMonitor();
@@ -21,6 +22,7 @@ Init_xthread()
   rb_mXThread = rb_define_module("XThread");
 
   Init_XThreadFifo();
+  Init_XThreadChainList();
   Init_XThreadCond();
   Init_XThreadQueue();
   Init_XThreadMonitor();
