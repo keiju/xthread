@@ -51,6 +51,11 @@ xtcl(_memsize)(const void *ptr)
   return ptr ? sizeof(xtcl(_t)) + cl->length * sizeof(xtcl(_entry_t)): 0;
 }
 
+#define GetXThreadChainListPtr(obj, tobj) \
+  TypedData_Get_Struct((obj), xthread_chain_list_t, &xthread_chain_list_data_type, (tobj))
+
+#define GetXTCLPtr(obj, tobj) GetXThreadChainListPtr(obj, tobj)
+
 #ifdef HAVE_RB_DATA_TYPE_T_FUNCTION
 static const rb_data_type_t xtcl(_data_type) = {
     "xthread_chain_list",
@@ -134,7 +139,20 @@ rb_xtcl(_new2)(VALUE ary)
   }
   return self;
 }
-		     
+
+VALUE
+rb_xtcl(_empty_p)(VALUE self)
+{
+  xtcl(_t) *cl;
+  GetXTCLPtr(self, cl);
+
+  if (cl->length) {
+    return Qfalse;
+  }
+  else {
+    return Qtrue;
+  }
+}
 
 VALUE
 rb_xtcl(_length)(VALUE self)
@@ -143,6 +161,15 @@ rb_xtcl(_length)(VALUE self)
   GetXTCLPtr(self, cl);
 
   return LONG2NUM(cl->length);
+}
+
+long
+rb_xtcl(_length_long)(VALUE self)
+{
+  xtcl(_t) *cl;
+  GetXTCLPtr(self, cl);
+
+  return cl->length;
 }
 
 VALUE
@@ -388,6 +415,83 @@ rb_xtcl(_each_entry_callback)(VALUE self, VALUE(*callback)(xtcl(_entry_t)*, VALU
 }
 
 VALUE
+rb_xtcl(_insert_before)(VALUE self, VALUE item)
+{
+  xtcl(_t) *cl;
+  xtcl(_entry_t) *entry;
+  xtcl(_entry_t) *prev_entry;
+  xtcl(_entry_t) *new_entry;
+
+  
+  GetXTCLPtr(self, cl);
+  if (cl->length == 0) {
+    rb_xtcl(_unshift)(self, item);
+    return self;
+  }
+
+  prev_entry = NULL;
+  entry = cl->head;
+  while (entry != NULL) {
+    if (RTEST(rb_yield(entry->element))) {
+      new_entry = ALLOC(xtcl(_entry_t));
+      new_entry->element = item;
+      new_entry->next = entry;
+      if (prev_entry) {
+	prev_entry->next = new_entry;
+      }
+      else {
+	cl->head = new_entry;
+      }
+      cl->length++;
+      return self;
+    }
+    prev_entry = entry;
+    entry = entry->next;
+  }
+  rb_xtcl(_push)(self, item);
+  return self;
+}
+
+VALUE
+rb_xtcl(_insert_before_callback)(VALUE self, VALUE item, VALUE(*callback)(VALUE, VALUE), VALUE arg)
+{
+  xtcl(_t) *cl;
+  xtcl(_entry_t) *entry;
+  xtcl(_entry_t) *prev_entry;
+  xtcl(_entry_t) *new_entry;
+
+  
+  GetXTCLPtr(self, cl);
+  if (cl->length == 0) {
+    rb_xtcl(_unshift)(self, item);
+    return self;
+  }
+
+  prev_entry = NULL;
+  entry = cl->head;
+  while (entry != NULL) {
+    if (RTEST(callback(entry->element, arg))) {
+      new_entry = ALLOC(xtcl(_entry_t));
+      new_entry->element = item;
+      new_entry->next = entry;
+      if (prev_entry) {
+	prev_entry->next = new_entry;
+      }
+      else {
+	cl->head = new_entry;
+      }
+      cl->length++;
+      return self;
+    }
+    prev_entry = entry;
+    entry = entry->next;
+  }
+  rb_xtcl(_push)(self, item);
+  return self;
+}
+
+
+VALUE
 rb_xtcl(_inspect)(VALUE self)
 {
   xtcl(_t) *cl;
@@ -422,6 +526,7 @@ Init_XThreadChainList()
   rb_define_method(rb_cXTCL, "unshift", rb_xtcl(_unshift), 1);
 
   rb_define_method(rb_cXTCL, "each", rb_xtcl(_each), 0);
+  rb_define_method(rb_cXTCL, "insert_before", rb_xtcl(_insert_before), 1);
   
   rb_define_method(rb_cXTCL, "to_a", rb_xtcl(_to_a), 0);
   rb_define_method(rb_cXTCL, "inspect", rb_xtcl(_inspect), 0);

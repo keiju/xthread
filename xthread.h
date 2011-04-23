@@ -43,14 +43,11 @@ typedef struct rb_xtcl(_strct)
   xtcl(_entry_t) *tail;
 } xtcl(_t);
 
-#define GetXThreadChainListPtr(obj, tobj) \
-  TypedData_Get_Struct((obj), xthread_chain_list_t, &xthread_chain_list_data_type, (tobj))
-
-#define GetXTCLPtr(obj, tobj) GetXThreadChainListPtr(obj, tobj)
 
 RUBY_EXTERN VALUE rb_xthread_chain_list_new(void);
 RUBY_EXTERN VALUE rb_xthread_chain_list_new2(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_length(VALUE);
+RUBY_EXTERN long rb_xthread_chain_list_length_long(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_first(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_aref(VALUE, long);
 RUBY_EXTERN VALUE rb_xthread_chain_list_aset(VALUE, long, VALUE);
@@ -59,6 +56,11 @@ RUBY_EXTERN VALUE rb_xthread_chain_list_unshift(VALUE, VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_pop(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_shift(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_each_callback(VALUE, VALUE(*)(VALUE, VALUE), VALUE);
+RUBY_EXTERN VALUE rb_xtcl(_each_entry_callback)(VALUE, VALUE(*)(xtcl(_entry_t)*, VALUE), VALUE);
+
+RUBY_EXTERN VALUE rb_xtcl(_insert_before)(VALUE self, VALUE item);
+RUBY_EXTERN VALUE rb_xtcl(_insert_before_callback)(VALUE, VALUE, VALUE(*)(VALUE, VALUE), VALUE);
+
 RUBY_EXTERN VALUE rb_xthread_chain_list_to_a(VALUE);
 RUBY_EXTERN VALUE rb_xthread_chain_list_inspect(VALUE);
 

@@ -1,3 +1,11 @@
+Sun Apr 24 01:01:24 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
+
+	* chain-list.c: GetXThreadChainListPtrをxthread.hからこちらに戻し
+	  た. ChainList#_empty?, ChainList#insert_before追加. C-API
+	  rb_xtcl(_length_long), rb_xtcl(_insert_before_callback)追加
+	* xthread.h: 上記修正に伴う修正.
+	* depend: 追加
+
 Fri Apr 22 15:30:01 2011  Keiju Ishitsuka  <keiju@ishitsuka.com>
 
 	* chain-list.c: XThread::ChainList追加
